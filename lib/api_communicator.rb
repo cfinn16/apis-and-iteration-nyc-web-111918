@@ -10,12 +10,14 @@ require 'pry'
 #   response_hash = JSON.parse(response_string)
 # end
 #
-# until response_hash(url)["results"].select do |character|
-#   character["name"].downcase == character_name
+# until response_hash(url)["results"]character["name"].downcase == character_name
+#
+#
 # end
-#
-#   url = response
-#
+
+
+
+
 # person = response_hash["results"].select do |character|
 #   character["name"].downcase == character_name
 # end
@@ -25,41 +27,44 @@ require 'pry'
 #   films_hash = JSON.parse(films_string)
 # end
 
-def create_array
-  arr = []
- count = 1
- while count < 10
-   response_string = RestClient.get('http://www.swapi.co/api/people/?page=' + count.to_s)
-   arr << JSON.parse(response_string)
-   count += 1
- end
- arr
-end
-    binding.pry
+# def create_array
+#   arr = []
+#  count = 1
+#  while count < 10
+#    response_string = RestClient.get('http://www.swapi.co/api/people/?page=' + count.to_s)
+#    arr << JSON.parse(response_string)
+#    count += 1
+#  end
+#  arr
+# end
 
+def get_response_hash(url)
+  response_string = RestClient.get(url)
+  response_hash = JSON.parse(response_string)
+end
 
 
 def get_character_movies_from_api(character_name)
   #make the web request
+  character_name = character_name.downcase
 
+  url = 'http://www.swapi.co/api/people/'
+  hash = get_response_hash(url)
 
-  create_array.each do |hash|
-    person = hash["results"].select do |result|
-      result["name"].downcase == character_name
-    end
+  until hash["results"].any? { |person| person["name"] = character_name }
+    url = hash["next"]
   end
 
-end
-    person["films"].map do |film_url|
-      films_string = RestClient.get("#{film_url}")
-      films_hash = JSON.parse(films_string)
-    end
+  person = hash["results"].select do |person|
+    person["name"] = character_name
+  end
+
+  person[0]["films"].map do |film_url|
+    get_response_hash(film_url)
+  end
 
 
-  # individual[0]["films"].map do |film_url|
-  #   films_string = RestClient.get("#{film_url}")
-  #   films_hash = JSON.parse(films_string)
-  # end
+
 
   # iterate over the response hash to find the collection of `films` for the given
   #   `character`
